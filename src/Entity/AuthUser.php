@@ -30,8 +30,9 @@ class AuthUser
     private ?string $pswHash = null;
 
     // rôle utilisateur
-    #[ORM\Column(length: 50)]
-    private ?string $role = null;
+    #[ORM\ManyToOne(targetEntity: Role::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Role $role = null;
 
     // compte actif ou non
     #[ORM\Column]
@@ -109,12 +110,12 @@ public function setPswHash(string $pswHash): static
     return $this;
 }
 
-public function getRole(): ?string
+public function getRole(): ?Role
 {
     return $this->role;
 }
 
-public function setRole(string $role): static
+public function setRole(?Role $role): static
 {
     $this->role = $role;
     return $this;

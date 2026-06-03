@@ -4,24 +4,37 @@ namespace App\Controller;
 
 use App\Entity\AuthUser;
 use App\Repository\AuthUserRepository;
+use App\Repository\RoleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-
-
 use Symfony\Component\Routing\Annotation\Route;
+
+
+//data test
+// {
+//   "firstName": "John",
+//   "lastName": "Doe",
+//   "email": "john@gmail.com",
+//   "password": "1234",
+//   "role": "ADMIN"
+// }
 
 #[Route('/auth')]
 class AuthUserController extends AbstractController
 {
     #[Route('/create-user', name: 'auth_simulation_create_user', methods: ['POST'])]
-    public function createUser(Request $request, EntityManagerInterface $em): JsonResponse
-    {
+    public function createUser(
+        Request $request,
+        EntityManagerInterface $em,
+        RoleRepository $roleRepository
+    ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
         $email = $data['email'] ?? null;
         $password = $data['password'] ?? null;
+        $roleType = $data['role'] ?? 'USER';
 
         if (!$email || !$password) {
             return $this->json([
@@ -30,18 +43,30 @@ class AuthUserController extends AbstractController
             ], 400);
         }
 
+        $role = $roleRepository->findOneBy([
+            'type' => $roleType
+        ]);
+
+        if (!$role) {
+            return $this->json([
+                'status' => false,
+                'message' => 'Rôle introuvable',
+                'role_requested' => $roleType
+            ], 404);
+        }
+
         $user = new AuthUser();
 
         $user->setFirstName($data['firstName'] ?? null);
         $user->setLastName($data['lastName'] ?? null);
         $user->setEmail($email);
 
-        // Hashage du mot de passe
         $user->setPswHash(password_hash($password, PASSWORD_BCRYPT));
 
-        $user->setRole($data['role'] ?? 'USER');
-        $user->setIsActive(true);
+        // ici on enregistre l'objet Role, pas un simple texte
+        $user->setRole($role);
 
+        $user->setIsActive(true);
         $user->setCreatedAt(new \DateTimeImmutable());
         $user->setUpdatedAt(new \DateTimeImmutable());
 
@@ -54,7 +79,13 @@ class AuthUserController extends AbstractController
             'data' => [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
-                'role' => $user->getRole(),
+                'role' => [
+                    'id' => $user->getRole()->getId(),
+                    'type' => $user->getRole()->getType(),
+                    'access' => $user->getRole()->getAccess()
+                ],
+
+                // à garder seulement pour test, pas en production
                 'password_hash_in_database' => $user->getPswHash()
             ]
         ]);
@@ -103,7 +134,6 @@ class AuthUserController extends AbstractController
             ], 401);
         }
 
-
         $accessToken = bin2hex(random_bytes(32));
         $refreshToken = bin2hex(random_bytes(64));
 
@@ -118,46 +148,30 @@ class AuthUserController extends AbstractController
             'status' => true,
             'message' => 'Connexion réussie',
 
+            'account' => [
+                'isActive' => $user->isActive(),
+                'message' => 'Compte actif'
+            ],
+
             'user' => [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
-                'role' => $user->getRole(),
-                'permissions' => $this->getPermissionsByRole(
-                    $user->getRole()
-                )
+                'role' => [
+                    'id' => $user->getRole()->getId(),
+                    'type' => $user->getRole()->getType()
+                ],
+                'permissions' => $user->getRole()->getAccess()
             ],
 
             'token' => [
                 'access_token' => $accessToken,
                 'refresh_token' => $refreshToken,
                 'token_type' => 'Bearer',
-                'expires_in_seconds' => 3600, //in seconds
+                'expires_in_seconds' => 3600,
                 'expires_at' => (
                     new \DateTimeImmutable('+1 hour')
                 )->format('Y-m-d H:i:s')
             ]
         ]);
-    }
-
-    private function getPermissionsByRole(string $role): array
-    {
-        return match ($role) {
-
-            'ADMIN' => [
-                'CREATE_USER',
-                'READ_USER',
-                'UPDATE_USER',
-                'DELETE_USER'
-            ],
-
-            'MANAGER' => [
-                'READ_USER',
-                'UPDATE_USER'
-            ],
-
-            default => [
-                'READ_USER'
-            ]
-        };
     }
 }
