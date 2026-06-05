@@ -142,7 +142,10 @@ class AuthUserController extends AbstractController
 
         $accessToken = bin2hex(random_bytes(32));
         $refreshToken = bin2hex(random_bytes(64));
+        $accessTokenExpiresAt = new \DateTimeImmutable('+ 2 minutes');
 
+        $user->setAccessToken($accessToken);
+        $user->setAccessTokenExpiresAt($accessTokenExpiresAt);
         $user->setRefreshToken($refreshToken);
         $user->setLastLoginAt(new \DateTimeImmutable());
         $user->setLastLoginIp($request->getClientIp());
@@ -173,10 +176,75 @@ class AuthUserController extends AbstractController
                 'access_token' => $accessToken,
                 'refresh_token' => $refreshToken,
                 'token_type' => 'Bearer',
-                'expires_in_seconds' => 3600,
-                'expires_at' => (
-                    new \DateTimeImmutable('+1 hour')
-                )->format('Y-m-d H:i:s')
+                'expires_in_seconds' => 120,
+                'expires_at' => $accessTokenExpiresAt->format('Y-m-d H:i:s')
+            ]
+        ]);
+    }
+
+    #[Route('/admin/dashboard', name: 'auth_admin_dashboard', methods: ['GET'])]
+    public function adminDashboard(
+        Request $request,
+        AuthUserRepository $repository
+    ): JsonResponse {
+        $authorizationHeader = $request->headers->get('Authorization');
+
+        if (!$authorizationHeader || !str_starts_with($authorizationHeader, 'Bearer ')) {
+            return $this->json([
+                'status' => false,
+                'message' => 'Token manquant'
+            ], 401);
+        }
+
+        $token = str_replace('Bearer ', '', $authorizationHeader);
+
+        $user = $repository->findOneBy([
+            'accessToken' => $token
+        ]);
+
+        if (!$user) {
+            return $this->json([
+                'status' => false,
+                'message' => 'Token invalide'
+            ], 401);
+        }
+
+        if ($user->getAccessTokenExpiresAt() < new \DateTimeImmutable()) {
+            return $this->json([
+                'status' => false,
+                'message' => 'Token expiré'
+            ], 401);
+        }
+
+        if (!$user->isActive()) {
+            return $this->json([
+                'status' => false,
+                'message' => 'Compte désactivé'
+            ], 403);
+        }
+
+        if ($user->getRole()->getType() !== 'ADMIN') {
+            return $this->json([
+                'status' => false,
+                'message' => 'Accès refusé : rôle ADMIN requis'
+            ], 403);
+        }
+
+        return $this->json([
+            'status' => true,
+            'message' => 'Bienvenue dans le dashboard admin',
+            'dashboard' => [
+                'title' => 'Admin Dashboard',
+                'description' => 'Espace réservé aux administrateurs'
+            ],
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'role' => [
+                    'id' => $user->getRole()->getId(),
+                    'type' => $user->getRole()->getType()
+                ],
+                'permissions' => $user->getRole()->getAccess()
             ]
         ]);
     }
