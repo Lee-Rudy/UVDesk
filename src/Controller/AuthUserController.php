@@ -12,13 +12,19 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 
-//data test
+//data test create user
 // {
 //   "firstName": "John",
 //   "lastName": "Doe",
 //   "email": "john@gmail.com",
 //   "password": "1234",
 //   "role": "ADMIN"
+// }
+
+//data test login
+// {
+//   "email": "john@gmail.com",
+//   "password": "1234",
 // }
 
 #[Route('/auth')]

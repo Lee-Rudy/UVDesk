@@ -5,6 +5,16 @@ namespace App\Entity;
 use App\Repository\AuthUserRepository;
 use Doctrine\ORM\Mapping as ORM;
 
+
+//user test 
+// {
+//   "firstName": "John",
+//   "lastName": "Doe",
+//   "email": "john@gmail.com",
+//   "password": "1234",
+//   "role": "ADMIN"
+// }
+
 #[ORM\Entity(repositoryClass: AuthUserRepository::class)]
 class AuthUser
 {
@@ -187,12 +197,3 @@ public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     return $this;
 }
 }
-
-//user test 
-// {
-//   "firstName": "John",
-//   "lastName": "Doe",
-//   "email": "john@gmail.com",
-//   "password": "1234",
-//   "role": "ADMIN"
-// }
