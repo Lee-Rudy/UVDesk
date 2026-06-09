@@ -21,6 +21,24 @@ use Symfony\Component\Routing\Annotation\Route;
 //   "role": "ADMIN"
 // }
 
+
+// {
+//   "firstName": "kevin",
+//   "lastName": "Doe",
+//   "email": "kevin@gmail.com",
+//   "password": "1234",
+//   "role": "MANAGER"
+// }
+
+// {
+//   "firstName": "Alice",
+//   "lastName": "Doe",
+//   "email": "alice@gmail.com",
+//   "password": "1234",
+//   "role": "USER"
+// }
+//=========================
+
 //data test login
 // {
 //   "email": "john@gmail.com",
