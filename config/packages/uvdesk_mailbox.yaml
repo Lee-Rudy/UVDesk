@@ -1,5 +1,7 @@
 uvdesk_mailbox:
-    emails: ~
+    emails:
+        delimiter: ~
+        enable_delimiter: false
 
     mailboxes:
         gmail:
@@ -9,9 +11,9 @@ uvdesk_mailbox:
             use_strict_mode: false
 
             imap_server:
-                host: 'imap.gmail.com'
+                host: '{imap.gmail.com:993/imap/ssl}INBOX'
                 username: 'ewenbruce82@gmail.com'
-                password: '%env(string:GMAIL_PASSWORD)%'
+                password: 'GMAIL_PASSWORD_ENV'
 
             smtp_server:
                 host: 'smtp.gmail.com'
@@ -19,40 +21,5 @@ uvdesk_mailbox:
                 client: 'tls'
                 type: 'smtp'
                 username: 'ewenbruce82@gmail.com'
-                password: '%env(string:GMAIL_PASSWORD)%'
+                password: 'GMAIL_PASSWORD_ENV'
                 sender_address: 'ewenbruce82@gmail.com'
-
-
-#=================================================================
-# uvdesk_mailbox:
-#     emails: ~
-#         # Often Reply emails like from gmail contains extra and redundant previous mail data.
-#         # This data can be removed by adding delimiter i.e. specific line before each reply. 
-#         # delimiter: '<-- Please add content above this line -->'
-#         # enable_delimiter: true
-
-#     # Configure your mailboxes here
-#     mailboxes: ~
-#         # default:
-#         #     name: 'Sample Mailbox'
-#         #     enabled: true
-#         #     disable_outbound_emails: false
-#         #     use_strict_mode: false
-        
-#         #     # Incoming email settings
-#         #     # IMAP settings to use for fetching emails from mailbox
-#         #     imap_server:
-#         #         host: ~
-#         #         username: ~
-#         #         password: ~
-
-#         #     # Outgoing email settings
-#         #     # Mailer settings to use for sending emails from mailbox
-#         #     smtp_server:
-#         #         host: ~
-#         #         port: ~
-#         #         client: ~
-#         #         type: ~
-#         #         username: ~
-#         #         password: ~
-#         #         sender_address: ~

@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Webkul\UVDesk\CoreFrameworkBundle\Entity\Ticket as UvdeskTicket;
 use Webkul\UVDesk\MailboxBundle\Services\MailboxService;
 
-#[Route('/api/uvdesk')]
+#[Route('/api/tests')]
 class UvdeskTicketController extends AbstractController
 {
     #[Route('/email/inbound', name: 'api_uvdesk_email_inbound', methods: ['POST'])]
